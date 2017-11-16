@@ -13,7 +13,8 @@ class TranslationsToJsonCommand extends Command
      */
     protected $signature = 'translations:to_json'
         . ' {path : Path to scan and replace}'
-        . ' {lang : Source language in /resources/lang/}'
+        . ' {src_lang : Source language in /resources/lang/}'
+        . ' {dest_lang? : Destination language in /resources/lang/}'
         . ' {--d|debug : Show results on stdout, no file is written}';
 
     /**
@@ -31,6 +32,7 @@ class TranslationsToJsonCommand extends Command
     public function __construct()
     {
         parent::__construct();
+        $this->lang_path = 'resources/lang';
         $this->matches = [];
     }
 
@@ -41,6 +43,7 @@ class TranslationsToJsonCommand extends Command
      */
     public function handle()
     {
+        // If not just debugging, be sure the user knows what's going on
         if (!$this->option('debug')) {
             $this->error("WARNING: THIS WILL OVERWRITE ALL FILES IN "
                 . $this->argument('path'). " AND ITS SUBDIRECTORIES!");
@@ -55,9 +58,11 @@ class TranslationsToJsonCommand extends Command
             }
         }
 
-        \App::setLocale($this->argument('lang'));
-        $this->readDir(rtrim($this->argument('path'), '/'));
+        // Use src_lang as default locale
+        \App::setLocale($this->argument('src_lang'));
 
+        // Process files
+        $this->readDir(rtrim($this->argument('path'), '/'));
         if (!$this->option('debug')) {
             $this->writeJson();
         }
@@ -82,25 +87,42 @@ class TranslationsToJsonCommand extends Command
         closedir($handle);
     }
 
+    private function replacementCallback($matches)
+    {
+        // Use Lang::get(...false) so no fallback locale is used
+        $src_lang_str = \Lang::get($matches[1], [], null, false);
+
+        // If there's a dest_lang associate with src_lang for the JSON file
+        if ($this->argument('dest_lang')) {
+            $this->matches[$src_lang_str] = \Lang::get(
+                $matches[1],
+                [],
+                $this->argument('dest_lang'),
+                false
+            );
+        } else { // Else, just leave it empty
+            $this->matches[$src_lang_str] = "";
+        }
+
+        // The actual replacement happens here
+        if (array_key_exists(2, $matches)) {
+            return '__("'.addcslashes($src_lang_str, '"').'", '.$matches[2].')';
+        } else {
+            return '__("'.addcslashes($src_lang_str, '"').'")';
+        }
+    }
+
     private function processFile($file_path)
     {
         if (is_writeable($file_path)) {
             $file = file_get_contents($file_path);
             $processed_file = preg_replace_callback(
                 '/(?:trans|__)\(["\']([^"\']+)["\'](?:, ?)?(\[[^\]]+\])?\)/',
-                function ($matches) {
-                    $translated_str = trans($matches[1]);
-                    $this->matches[$translated_str] = "";
-
-                    if (array_key_exists(2, $matches)) {
-                        return '__("'.addcslashes($translated_str, '"').'", '.$matches[2].')';
-                    } else {
-                        return '__("'.addcslashes($translated_str, '"').'")';
-                    }
-                },
+                'self::replacementCallback',
                 $file
             );
 
+            // Inform the user what's going on
             if (!$this->option('debug')) {
                 if ($file == $processed_file) {
                     $this->comment("No matches in $file_path");
@@ -122,12 +144,21 @@ class TranslationsToJsonCommand extends Command
         }
     }
 
+    // If there's a destination lang, consider it as destination file
+    private function destinationJsonPath()
+    {
+        if ($this->argument('dest_lang')) {
+            $lang = $this->argument('dest_lang');
+        } else {
+            $lang = $this->argument('src_lang');
+        }
+        return "$this->lang_path/$lang.json";
+    }
+
     private function writeJson()
     {
-        $lang_path = 'resources/lang';
-
-        if (is_writeable($lang_path)) {
-            $file_path = "$lang_path/".\App::getLocale().'.json';
+        if (is_writeable($this->lang_path)) {
+            $file_path = $this->destinationJsonPath();
 
             // If $file_path already exists, append results to it
             if ($file = @file_get_contents($file_path)) {

@@ -11,16 +11,23 @@ composer require hacktivista/laravel-transtojson --dev
 ## Usage
 
 ```
-php artisan translations:to_json path/to/process/ lang [--debug]
+php artisan translations:to_json path/to/process/ src_lang [dest_lang] [--debug]
+```
+
+E.g.
+```
+php artisan translations:to_json resources/views/ en es
 ```
 
 It will:
-- Replace all `trans('...')` and `__('...')` translations found in files on `path/to/process/` and subfolders with `__("Textual translation strings")`.
-- Create a `lang`.json  file in `resources/lang/` with textual translation strings. If file already exists, it will merge results with what's already in the file.
+- Replace all `trans('...')` and `__('...')` translations found in files on `path/to/process/` and subfolders with `__("Textual translation strings")`
+- Create a JSON file in `resources/lang/` with textual translation strings. If file already exists, it will merge results with what's already in the file
 
 **THIS WILL OVERWRITE ALL FILES IN `path/to/process/` AND SUBDIRECTORIES. BE SURE TO BACKUP FILES PREVIOUS TO RUN THIS COMMAND!**
 
 In order to check results without writing to files run with `--debug` option.
+
+`dest_lang` is optional, if set, the resulting JSON file will have source language strings associated with destination language strings. If not, only source language strings with empty destination strings.
 
 It will NOT delete translations in `resources/lang/<lang>/`, do it manually when you consider appropriate.
 
