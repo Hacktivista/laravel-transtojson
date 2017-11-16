@@ -1,0 +1,20 @@
+{
+    "name": "hacktivista/laravel-transtojson",
+    "description": "Turn Laravel 5 dot.based.translations into JSON-based translations",
+    "license": "Unlicense",
+    "require": {
+    	"laravel/framework": "~5.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Hacktivista\\TransToJson\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Hacktivista\\TransToJson\\TransToJsonServiceProvider"
+            ]
+        }
+    }
+}
