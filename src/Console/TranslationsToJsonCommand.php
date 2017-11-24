@@ -70,21 +70,24 @@ class TranslationsToJsonCommand extends Command
 
     private function readDir($dir_path)
     {
-        $handle = opendir($dir_path);
+        if (is_dir($dir_path)) {
+            $handle = opendir($dir_path);
+            while (false !== ($entry = readdir($handle))) {
+                $current_file = "$dir_path/$entry";
 
-        while (false !== ($entry = readdir($handle))) {
-            $current_file = "$dir_path/$entry";
-
-            if (is_dir($current_file)) {
-                if ($entry != '.' && $entry != '..') {
-                    $this->readDir($current_file);
+                if (is_dir($current_file)) {
+                    if ($entry != '.' && $entry != '..') {
+                        $this->readDir($current_file);
+                    }
+                } else {
+                    $this->processFile($current_file);
                 }
-            } else {
-                $this->processFile($current_file);
             }
-        }
 
-        closedir($handle);
+            closedir($handle);
+        } else {
+            $this->processFile($dir_path);
+        }
     }
 
     private function replacementCallback($matches)
