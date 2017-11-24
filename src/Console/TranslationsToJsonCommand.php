@@ -92,22 +92,29 @@ class TranslationsToJsonCommand extends Command
 
     private function replacementCallback($matches)
     {
-        // Use Lang::get(...false) so no fallback locale is used
+        // Use Lang::get(,,,false) so no fallback locale is used
         $src_lang_str = \Lang::get($matches[1], [], null, false);
 
-        // If there's a dest_lang associate with src_lang for the JSON file
+        // JSON file:
+        // Associate src lang with and empty string
+        $this->matches[$src_lang_str] = "";
+
+        // But if there's a dest_lang associate it
         if ($this->argument('dest_lang')) {
-            $this->matches[$src_lang_str] = \Lang::get(
+            $dest_lang_str = \Lang::get(
                 $matches[1],
                 [],
                 $this->argument('dest_lang'),
                 false
             );
-        } else { // Else, just leave it empty
-            $this->matches[$src_lang_str] = "";
+
+            // Only if there's a match
+            if ($dest_lang_str != $matches[1]) {
+                $this->matches[$src_lang_str] = $dest_lang_str;
+            }
         }
 
-        // The actual replacement happens here
+        // Processed file:
         if (array_key_exists(2, $matches)) {
             return '__("'.addcslashes($src_lang_str, '"').'", '.$matches[2].')';
         } else {
@@ -173,7 +180,7 @@ class TranslationsToJsonCommand extends Command
             file_put_contents(
                 $file_path,
                 json_encode(
-                    array_merge($old_file_array, $this->matches),
+                    array_merge($this->matches, $old_file_array),
                     JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
                 )
             );
