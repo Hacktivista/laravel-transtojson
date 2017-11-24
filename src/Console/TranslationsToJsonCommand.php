@@ -127,7 +127,7 @@ class TranslationsToJsonCommand extends Command
         if (is_writeable($file_path)) {
             $file = file_get_contents($file_path);
             $processed_file = preg_replace_callback(
-                '/(?:trans|__)\(["\']([^"\']+)["\'](?:, ?)?(\[[^\]]+\])?\)/',
+                '/(?:trans|__)\(["\']([^"\' ]+)["\'](?:, ?)?(\[[^\]]+\])?\)/',
                 'self::replacementCallback',
                 $file
             );
