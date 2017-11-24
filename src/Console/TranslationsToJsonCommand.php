@@ -45,8 +45,9 @@ class TranslationsToJsonCommand extends Command
     {
         // If not just debugging, be sure the user knows what's going on
         if (!$this->option('debug')) {
-            $this->error("WARNING: THIS WILL OVERWRITE ALL FILES IN "
-                . $this->argument('path'). " AND ITS SUBDIRECTORIES!");
+            $this->error("WARNING: THIS WILL OVERWRITE ALL FILES USING __() AND"
+                . " trans() FUNCTIONS IN ".$this->argument('path')." AND ITS"
+                . " SUBDIRECTORIES!");
             $this->comment("In order to check results without writing to files"
                 . " run with -d option.");
             $this->question("ARE YOU SURE? (y/N)");

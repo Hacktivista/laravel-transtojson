@@ -21,9 +21,11 @@ php artisan translations:to_json resources/views/ en es
 
 It will:
 - Replace all `trans('...')` and `__('...')` translations found in files on `path/to/process/` and subfolders with `__("Textual translation strings")`
-- Create a JSON file in `resources/lang/` with textual translation strings. If file already exists, it will merge results with what's already in the file
+- Create a JSON file in `resources/lang/` with textual translation strings *
 
-**THIS WILL OVERWRITE ALL FILES IN `path/to/process/` AND SUBDIRECTORIES. BE SURE TO BACKUP FILES PREVIOUS TO RUN THIS COMMAND!**
+\* If JSON file already exists it will merge results with what's already on it. If there's a match with a phrase already matched, contents on the JSON file will prevail.
+
+**THIS WILL OVERWRITE ALL FILES USING __() AND trans() FUNCTIONS IN `path/to/process/` AND SUBDIRECTORIES. BE SURE TO BACKUP FILES PREVIOUS TO RUN THIS COMMAND!**
 
 In order to check results without writing to files run with `--debug` option.
 
